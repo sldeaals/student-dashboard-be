@@ -11,6 +11,8 @@ import { ThrottleConfig, MongoConfig } from './config/types';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -54,5 +56,7 @@ import { UsersModule } from './modules/users/users.module';
     AuthModule,
     UsersModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
