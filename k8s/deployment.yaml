@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: api
+          image: student-dashboard-be:latest
+          ports:
+            - containerPort: 3000
