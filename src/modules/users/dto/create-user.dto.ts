@@ -5,6 +5,7 @@ import {
   MinLength,
   IsArray,
 } from 'class-validator';
+import { Role } from '../../../common/constants/roles.constant';
 
 export class CreateUserDto {
   @IsString()
@@ -19,5 +20,5 @@ export class CreateUserDto {
   password: string;
 
   @IsArray()
-  roles?: string[];
+  roles?: Role[];
 }
