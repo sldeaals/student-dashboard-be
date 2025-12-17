@@ -22,6 +22,9 @@ export class User {
 
   @Prop({ default: null })
   refreshTokenHash?: string;
+
+  @Prop({ default: 0 })
+  refreshTokenVersion: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

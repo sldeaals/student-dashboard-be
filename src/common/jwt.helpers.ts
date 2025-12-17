@@ -15,3 +15,9 @@ export function getJwtRefreshOptions(): JwtSignOptions {
     expiresIn,
   };
 }
+
+export function getBCryptHashSalt(): number {
+  return process.env.BCRYPT_HASH_SALT
+    ? Number(process.env.BCRYPT_HASH_SALT)
+    : 12;
+}

@@ -4,13 +4,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { User, UserDocument } from '../users/schemas/user.schema';
-import { getJwtRefreshOptions } from '../../common/jwt.helpers';
-
-interface JwtPayload {
-  sub: string;
-  email: string;
-  roles: string[];
-}
+import {
+  getBCryptHashSalt,
+  getJwtRefreshOptions,
+} from '../../common/jwt.helpers';
+import { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
+import { ROLES } from '../../common/constants/roles.constant';
 
 @Injectable()
 export class AuthService {
@@ -25,13 +24,13 @@ export class AuthService {
       throw new UnauthorizedException('Email already registered');
     }
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = await bcrypt.hash(password, getBCryptHashSalt());
 
     const user = await this.userModel.create({
       email,
       name,
       passwordHash,
-      roles: ['student'],
+      roles: [ROLES.STUDENT],
       isActive: true,
     });
 
@@ -61,16 +60,23 @@ export class AuthService {
       sub: user._id.toString(),
       email: user.email,
       roles: user.roles,
+      version: user.refreshTokenVersion,
     };
 
     const accessToken = this.jwt.sign(payload);
 
     const refreshToken = this.jwt.sign(
-      { sub: payload.sub },
+      {
+        sub: payload.sub,
+        version: payload.version,
+      },
       getJwtRefreshOptions(),
     );
 
-    const refreshTokenHash = await bcrypt.hash(refreshToken, 12);
+    const refreshTokenHash = await bcrypt.hash(
+      refreshToken,
+      getBCryptHashSalt(),
+    );
 
     await this.userModel.updateOne({ _id: user._id }, { refreshTokenHash });
 
@@ -109,7 +115,7 @@ export class AuthService {
    * Legacy endpoint compatibility
    */
   async verifyRefresh(refreshToken: string) {
-    let payload: { sub: string };
+    let payload: { sub: string; version: number };
 
     try {
       payload = await this.jwt.verifyAsync(refreshToken, {
@@ -119,6 +125,48 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    return this.refreshTokens(payload.sub, refreshToken);
+    const user = await this.userModel.findById(payload.sub);
+
+    if (!user || !user.isActive || !user.refreshTokenHash) {
+      throw new UnauthorizedException();
+    }
+
+    if (user.refreshTokenVersion !== payload.version) {
+      await this.userModel.updateOne(
+        { _id: user._id },
+        {
+          refreshTokenHash: null,
+          $inc: { refreshTokenVersion: 1 },
+        },
+      );
+
+      throw new UnauthorizedException('Refresh token reuse detected');
+    }
+
+    const isValid = await bcrypt.compare(refreshToken, user.refreshTokenHash);
+
+    if (!isValid) {
+      await this.userModel.updateOne(
+        { _id: user._id },
+        {
+          refreshTokenHash: null,
+          $inc: { refreshTokenVersion: 1 },
+        },
+      );
+
+      throw new UnauthorizedException('Refresh token reuse detected');
+    }
+
+    await this.userModel.updateOne(
+      { _id: user._id },
+      { $inc: { refreshTokenVersion: 1 } },
+    );
+
+    const updatedUser = await this.userModel.findById(user._id);
+    if (!updatedUser) {
+      throw new UnauthorizedException();
+    }
+
+    return this.signTokens(updatedUser);
   }
 }
