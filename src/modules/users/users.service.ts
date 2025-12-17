@@ -8,6 +8,7 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
+import { ROLES } from '../../common/constants/roles.constant';
 
 @Injectable()
 export class UsersService {
@@ -26,7 +27,7 @@ export class UsersService {
       name: dto.name,
       email: dto.email,
       passwordHash,
-      roles: dto.roles ?? ['student'],
+      roles: dto.roles ?? [ROLES.STUDENT],
     });
   }
 

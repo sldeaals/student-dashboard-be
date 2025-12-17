@@ -6,19 +6,19 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import appConfig from './config/app.config';
 import jwtConfig from './config/jwt.config';
 import mongoConfig from './config/mongo.config';
-import redisConfig from './config/redis.config';
 import { validationSchema } from './config/validation';
 import { ThrottleConfig, MongoConfig } from './config/types';
 
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { CacheModule } from './modules/cache/cache.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig, jwtConfig, mongoConfig, redisConfig],
+      load: [appConfig, jwtConfig, mongoConfig],
       validationSchema,
     }),
 
@@ -53,9 +53,10 @@ import { CacheModule } from './modules/cache/cache.module';
       },
     }),
 
-    CacheModule,
     AuthModule,
     UsersModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

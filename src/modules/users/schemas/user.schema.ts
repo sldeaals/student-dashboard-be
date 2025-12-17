@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { Role, ROLES } from '../../../common/constants/roles.constant';
 
 export type UserDocument = User & Document;
 
@@ -14,14 +15,21 @@ export class User {
   @Prop({ required: true })
   passwordHash: string;
 
-  @Prop({ type: [String], default: ['student'] })
-  roles: string[]; // student | teacher | poweruser | admin | superadmin
+  @Prop({
+    type: [String],
+    enum: Object.values(ROLES),
+    default: [ROLES.STUDENT],
+  })
+  roles: Role[];
 
   @Prop({ default: true })
   isActive: boolean;
 
   @Prop({ default: null })
   refreshTokenHash?: string;
+
+  @Prop({ default: 0 })
+  refreshTokenVersion: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
