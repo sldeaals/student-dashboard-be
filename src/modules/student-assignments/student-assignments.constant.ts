@@ -4,3 +4,7 @@ export enum StudentAssignmentStatus {
   REVIEWED = 'reviewed',
   EXPIRED = 'expired',
 }
+
+export interface CourseGradeAggregate {
+  total: number;
+}
