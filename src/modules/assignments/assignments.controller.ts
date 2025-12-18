@@ -32,10 +32,7 @@ export class AssignmentsController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() dto: Partial<CreateAssignmentDto>,
-  ) {
+  update(@Param('id') id: string, @Body() dto: Partial<CreateAssignmentDto>) {
     return this.assignments.update(id, dto);
   }
 
