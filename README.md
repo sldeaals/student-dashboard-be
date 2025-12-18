@@ -218,6 +218,6 @@ Built and maintained as a **production-grade reference backend**.
 
 ## 📄 License
 
-MIT
+GPLv3
 
 ---
